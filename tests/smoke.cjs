@@ -648,6 +648,16 @@ function check(name, cond) {
   await page.click('.migrate-details summary');
   check('タップで開いて手順が読める', await page.$eval('.migrate-details', el => el.hasAttribute('open')) &&
     (await page.textContent('.migrate-steps')).includes('バックアップを読み込み'));
+
+  // ── 姉妹アプリへのリンク（独自ドメインへ移すときに切れやすいので固定する） ──
+  const sibHrefs = await page.$$eval('.link-btn', els => els.map(a => a.getAttribute('href')));
+  check('姉妹アプリへのリンクが3本ある', sibHrefs.length === 3);
+  check('禁酒へのリンクがある', sibHrefs.some(h => h.endsWith('/kinnsyu/')));
+  check('禁煙へのリンクがある', sibHrefs.some(h => h.endsWith('/kinnenn/')));
+  check('ギャンブル断ちへのリンクがある', sibHrefs.some(h => h.endsWith('/dangyanburu/')));
+  check('自分自身へは張っていない', !sibHrefs.some(h => h.endsWith('/sesshu/')));
+  check('姉妹アプリのリンクは参照元を渡さない',
+    await page.$$eval('.link-btn', els => els.every(a => (a.rel || '').includes('noopener'))));
   await page.click('#closeSettings');
   await page.waitForTimeout(200);
 
